@@ -1,6 +1,9 @@
 [gd_scene format=3 uid="uid://cq36q5iu0w5ws"]
 
 [ext_resource type="Script" uid="uid://caumv2ionwq3h" path="res://Scripts/player.gd" id="1_y0qk3"]
+[ext_resource type="PackedScene" uid="uid://x2r58gr6n5jt" path="res://Assets Pack/Sword.glb" id="2_3y5cq"]
+[ext_resource type="Texture2D" uid="uid://bi7uc25ytk6fj" path="res://Sprites/healthbarbacunder.png" id="3_0ad8t"]
+[ext_resource type="Texture2D" uid="uid://k10st8ti5sxn" path="res://Sprites/healthbarover.png" id="4_x20fu"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2xutg"]
 radius = 0.4
@@ -9,6 +12,69 @@ height = 1.8
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_v5iwq"]
 radius = 0.4
 height = 1.8
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_atkhb"]
+radius = 1.5
+
+[sub_resource type="Animation" id="Animation_3y5cq"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Camera3D/SwordPoint:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0.39865488, 0.0075564384, -0.52480257)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Camera3D/SwordPoint:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(-2.4964232, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_2i4gt"]
+resource_name = "swordSwing"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Camera3D/SwordPoint:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.36666667, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0.39865488, 0.0075564384, -0.52480257), Vector3(0.39865488, 0.0075564384, -0.635337), Vector3(0.39865488, 0.0075564384, -0.52480257)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Camera3D/SwordPoint:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.36666667, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(-2.4964232, 0, 0), Vector3(-3.068122, 0, 0), Vector3(-2.4964232, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_0ad8t"]
+_data = {
+&"RESET": SubResource("Animation_3y5cq"),
+&"swordSwing": SubResource("Animation_2i4gt")
+}
 
 [node name="Player" type="CharacterBody3D" unique_id=1588503088]
 script = ExtResource("1_y0qk3")
@@ -21,3 +87,42 @@ mesh = SubResource("CapsuleMesh_v5iwq")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1463734532]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.79466, 0)
+
+[node name="SwordPoint" type="Node3D" parent="Camera3D" unique_id=1400157380]
+transform = Transform3D(1, 0, 0, 0, -0.7989978, 0.60133374, 0, -0.60133374, -0.7989978, 0.39865488, 0.0075564384, -0.52480257)
+
+[node name="Sword" parent="Camera3D/SwordPoint" unique_id=693727209 instance=ExtResource("2_3y5cq")]
+transform = Transform3D(-0.061200306, 0.069006816, -0.9957372, 0.78470266, 0.6198501, -0.0052726534, 0.6168438, -0.78168035, -0.09208485, 0, 0, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=857865457]
+libraries/ = SubResource("AnimationLibrary_0ad8t")
+speed_scale = 2.0
+
+[node name="attackCooldown" type="Timer" parent="." unique_id=644836462]
+wait_time = 0.5
+
+[node name="AttackHitbox" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1.5)
+monitoring = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox"]
+shape = SubResource("SphereShape3D_atkhb")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=341950574]
+
+[node name="HpBar" type="TextureProgressBar" parent="HUD" unique_id=1783434131]
+offset_left = 35.0
+offset_top = 26.0
+offset_right = 274.0
+offset_bottom = 66.0
+texture_under = ExtResource("3_0ad8t")
+texture_progress = ExtResource("4_x20fu")
+
+[node name="Gold" type="Label" parent="HUD" unique_id=1878653330]
+offset_left = 1068.0
+offset_top = 596.0
+offset_right = 1108.0
+offset_bottom = 619.0
+text = "0"
+
+[connection signal="timeout" from="attackCooldown" to="." method="_on_attack_cooldown_timeout"]
