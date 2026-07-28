@@ -7,12 +7,46 @@ const JUMP_VELOCITY = 4.5
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 
 var sensitivity = 0.003
-@onready var camera = $Camera3D
+var attack_cooldown = false
+var gold = 0
+var hp = 50
+var max_hp = 50
 
-func _ready() -> void: 
+@onready var camera = $Camera3D
+@onready var animationPlayer = $AnimationPlayer
+@onready var attackCooldown = $attackCooldown
+@onready var hpBar = $HUD/HpBar
+@onready var goldlabel = $HUD/Gold
+@onready var attackHitbox = $AttackHitbox
+
+func _ready() -> void:
+	hpBar.max_value = 50
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	add_to_group("player")
+
+func take_damage(amount: int) -> void:
+	hp = clamp(hp - amount, 0, max_hp)
+
+func attack():
+	if Input.is_action_just_pressed("attack") and attack_cooldown == false:
+		animationPlayer.play("swordSwing")
+		attack_cooldown = true
+		attackCooldown.start()
+		deal_attack_damage()
+
+func deal_attack_damage() -> void:
+	for body in attackHitbox.get_overlapping_bodies():
+		if body.is_in_group("enemy") and body.has_method("take_damage"):
+			body.take_damage(15)
+
+func update_HUD():
+	hpBar.value = hp
+	goldlabel.text = str(gold)
+	
 
 func _process(delta):
+	attack()
+	update_HUD()
 	if Input.is_action_just_pressed("escaped"):
 		get_tree().quit()
 		
@@ -44,3 +78,7 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, SPEED)
 
 	move_and_slide()
+
+
+func _on_attack_cooldown_timeout() -> void:
+	attack_cooldown = false # Replace with function body.
